@@ -36,6 +36,8 @@ in the list view except for the admin user
     'depends': ['web'],
     'data': [
         'view/disable_export_view.xml',
+        'security/security.xml',
+        'security/ir.model.access.csv',
     ],
     'auto_install': False,
 }

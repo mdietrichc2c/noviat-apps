@@ -24,31 +24,39 @@
 openerp.web_disable_export = function(instance) {
 
     var _t = instance.web._t;
-    var SUPERUSER_ID = 1;
 
     instance.web.Sidebar.include({
 
         add_items: function(section_code, items) {
-            // allow Export for admin user
-            if (this.session.uid == SUPERUSER_ID) {
-                this._super.apply(this, arguments);
-            }
-            else {
-                var export_label = _t("Export");
-                var new_items = items;
-                if (section_code == 'other') {
-                    new_items = [];
-                    for (var i = 0; i < items.length; i++) {
-                        console.log("items[i]: ", items[i]);
-                        if (items[i]['label'] != export_label) {
-                            new_items.push(items[i]);
+            var self = this;
+            var old_add_items = _.bind(this._super, this);
+            var export_right = false;
+            new instance.web.Model('ir.exports')
+            .call("check_access_rights", {
+                operation: 'create',
+                raise_exception: false
+            }).then(function(result){
+                export_right = result;
+                if (export_right) {
+                    old_add_items(section_code, items);
+                }
+                else {
+                    var export_label = _t("Export");
+                    var new_items = items;
+                    if (section_code == 'other') {
+                        new_items = [];
+                        for (var i = 0; i < items.length; i++) {
+                            console.log("items[i]: ", items[i]);
+                            if (items[i]['label'] != export_label) {
+                                new_items.push(items[i]);
+                            };
                         };
                     };
+                    if (new_items.length > 0) {
+                        old_add_items(section_code, new_items);
+                    };
                 };
-                if (new_items.length > 0) {
-                    this._super.call(this, section_code, new_items);
-                };
-            }
+            });
             
         },
 
